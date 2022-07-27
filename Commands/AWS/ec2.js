@@ -8,7 +8,7 @@ module.exports = {
   data: new SlashCommandBuilder()
     .setName("aws-ec2")
     .setDescription("EC2 Servers")
-    .setDefaultMemberPermissions(PermissionFlagsBits.ViewChannel),
+    .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
   /**
    *
    * @param {CommandInteraction} interaction
