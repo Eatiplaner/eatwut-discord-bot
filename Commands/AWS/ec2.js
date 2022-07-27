@@ -4,7 +4,6 @@ const shell = require('shelljs');
 const { NotifyDevopsEmbed } = require('../../Components/Embed')
 
 module.exports = {
-  developer: true,
   name: 'aws-ec2',
   data: new SlashCommandBuilder()
     .setName("aws-ec2")
