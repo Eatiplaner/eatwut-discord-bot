@@ -1,8 +1,6 @@
 const { EmbedBuilder } = require("@discordjs/builders");
 const { SlashCommandBuilder, CommandInteraction, PermissionFlagsBits, ActionRowBuilder, ButtonBuilder, ButtonStyle, Colors } = require("discord.js")
 
-const wait = require('node:timers/promises').setTimeout;
-
 module.exports = {
   developer: true,
   name: 'aws-ec2',
@@ -15,45 +13,45 @@ module.exports = {
    * @param {CommandInteraction} interaction
    */
   execute(interaction) {
-    const row = new ActionRowBuilder()
+    const row = (options = { disableStart: false, disableStop: false }) => new ActionRowBuilder()
       .addComponents(
         new ButtonBuilder()
           .setCustomId('aws-ec2-start')
           .setLabel('Start All Servers')
-          .setStyle(ButtonStyle.Success),
-      ).addComponents(
+          .setStyle(ButtonStyle.Success)
+          .setDisabled(options.disableStart),
         new ButtonBuilder()
           .setCustomId('aws-ec2-stop')
           .setLabel('Stop All Servers')
           .setStyle(ButtonStyle.Danger)
-      );
+          .setDisabled(options.disableStop),
+      )
 
-    interaction.reply({ components: [row] });
+    interaction.reply({ components: [row()] });
 
-    const start_filter = i => i.customId === 'aws-ec2-start'
-    const stop_filter = i => i.customId === 'aws-ec2-stop'
+    const collector = interaction.channel.createMessageComponentCollector();
 
-    const start_collector = interaction.channel.createMessageComponentCollector({ filter: start_filter });
-    const stop_collector = interaction.channel.createMessageComponentCollector({ filter: stop_filter });
+    collector.on('collect', async i => {
+      if (i.customId === 'aws-ec2-start') {
+        const embed = new EmbedBuilder()
+          .setColor(Colors.Green)
+          .setTitle('All Servers Running')
+          .setDescription('Sent trigger command to aws ec2 instances');
 
-    start_collector.on('collect', async i => {
-      const embed = new EmbedBuilder()
-        .setColor(Colors.Green)
-        .setTitle('All Servers Running')
-        .setDescription('Sent trigger command to aws ec2 instances');
+        await i.deferReply();
+        await i.editReply({ components: [row({ disableStop: false, disableStart: true })], embeds: [embed], isInteraction: true });
+      }
 
-      await i.deferUpdate();
-      await i.editReply({ components: [], embeds: [embed], fetchReply: true });
+      if (i.customId === 'aws-ec2-stop') {
+        const embed = new EmbedBuilder()
+          .setColor(Colors.Red)
+          .setTitle('All Servers Stopped')
+          .setDescription('Sent trigger command to aws ec2 instances');
+
+        await i.deferReply();
+        await i.editReply({ components: [row({ disableStop: true, disableStart: false })], embeds: [embed], isInteraction: true });
+      }
     });
 
-    stop_collector.on('collect', async i => {
-      const embed = new EmbedBuilder()
-        .setColor(Colors.Red)
-        .setTitle('All Servers Stopping')
-        .setDescription('Sent trigger command to aws ec2 instances');
-
-      await i.deferUpdate();
-      await i.editReply({ components: [], embeds: [embed], fetchReply: true });
-    });
   },
 }
