@@ -14,21 +14,38 @@ module.exports = {
    * @param {CommandInteraction} interaction
    */
   execute(interaction) {
-    const row = (options = { disableStart: false, disableStop: false }) => new ActionRowBuilder()
-      .addComponents(
-        new ButtonBuilder()
-          .setCustomId('aws-ec2-start')
-          .setLabel('Start All Servers')
-          .setStyle(ButtonStyle.Success),
-        new ButtonBuilder()
-          .setCustomId('aws-ec2-stop')
-          .setLabel('Stop All Servers')
-          .setStyle(ButtonStyle.Danger)
-      )
 
-    interaction.reply({ components: [row()] });
+    const StartButton = (disable = false) => {
+      const baseButton = new ButtonBuilder()
+        .setCustomId('aws-ec2-start')
+        .setLabel('Start All Servers')
+        .setStyle(ButtonStyle.Success)
+
+      if (disable) {
+        baseButton.setDisabled()
+      }
+      return baseButton;
+    }
+
+    const StopButton = (disable = false) => {
+      const baseButton = new ButtonBuilder()
+        .setCustomId('aws-ec2-stop')
+        .setLabel('Stop All Servers')
+        .setStyle(ButtonStyle.Danger)
+
+      if (disable) {
+        baseButton.setDisabled()
+      }
+
+      return baseButton;
+    }
+
+    const rowButtons = (options = { disableStart: false, disableStop: false }) => new ActionRowBuilder().addComponents(StartButton(options.disableStart), StopButton(options.disableStop))
+
+    interaction.reply({ components: [rowButtons()] });
 
     interaction.channel.awaitMessageComponent().then(async (i) => {
+      interaction.editReply({ content: "😈 ***This command has been triggered, please create a new command.***", components: [rowButtons({ disableStart: true, disableStop: true })] });
       if (i.customId === 'aws-ec2-start') {
         await i.deferReply();
 
